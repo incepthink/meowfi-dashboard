@@ -6,19 +6,19 @@ import { GraphQLClient } from 'graphql-request';
 const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT || 'http://localhost:8080/v1/graphql';
 
 // Create GraphQL client instance
-export const graphqlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {
+ const graphqlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {
   headers: {
     'Content-Type': 'application/json',
   },
 });
 import { gql } from 'graphql-request';
 
-export interface ApiError {
+ interface ApiError {
   error: string;
   message: string;
 }
 
-export interface GetUserRequest {
+ interface GetUserRequest {
   address: string;
   week?: string;
 }
