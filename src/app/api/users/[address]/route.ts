@@ -1,10 +1,26 @@
-// Next.js API route to get specific user data
+// Next.js API route to get specific user data via POST
 import { NextRequest, NextResponse } from 'next/server';
-import { graphqlClient } from '@/lib/graphql-client';
+import { GraphQLClient } from 'graphql-request';
+
+// Replace with your actual indexer GraphQL endpoint
+const GRAPHQL_ENDPOINT = process.env.GRAPHQL_ENDPOINT || 'http://localhost:8080/v1/graphql';
+
+// Create GraphQL client instance
+export const graphqlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 import { gql } from 'graphql-request';
+
 export interface ApiError {
   error: string;
   message: string;
+}
+
+export interface GetUserRequest {
+  address: string;
+  week?: string;
 }
 
 // Query for specific user with weekly points
@@ -35,16 +51,21 @@ const GET_USER_BY_ADDRESS_QUERY = gql`
   }
 `;
 
-// GET /api/users/[address] - Get specific user data
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ address: string }> }
-) {
+// POST /api/user - Get specific user data
+export async function POST(request: NextRequest) {
   try {
-    const {address} = await params;
-    const { searchParams } = new URL(request.url);
+    const body: GetUserRequest = await request.json();
     
-    // Get current week number or from query params
+    if (!body.address) {
+      return NextResponse.json(
+        { error: 'MISSING_ADDRESS', message: 'Address is required in request body' },
+        { status: 400 }
+      );
+    }
+    
+    const { address, week } = body;
+    
+    // Get current week number or use provided week
     const getCurrentWeek = () => {
       const now = new Date();
       const dayOfWeek = now.getUTCDay();
@@ -54,7 +75,7 @@ export async function GET(
       return sunday.toISOString().split('T')[0];
     };
     
-    const weekNumber = searchParams.get('week') || getCurrentWeek();
+    const weekNumber = week || getCurrentWeek();
     
     // Validate address format (basic Ethereum address validation)
     if (!address.match(/^0x[a-fA-F0-9]{40}$/)) {
@@ -78,7 +99,15 @@ export async function GET(
       );
     }
     
-    return NextResponse.json(user, {
+    return NextResponse.json({
+      success: true,
+      data: user,
+      metadata: {
+        address,
+        weekNumber,
+        timestamp: new Date().toISOString()
+      }
+    }, {
       status: 200,
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -97,4 +126,16 @@ export async function GET(
     
     return NextResponse.json(errorResponse, { status: 500 });
   }
+}
+
+// Optional: Handle OPTIONS for CORS if needed
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  });
 }

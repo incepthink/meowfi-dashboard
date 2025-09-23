@@ -69,9 +69,18 @@ export default function UsersPage() {
       // Convert MUI pagination (0-based) to API pagination (1-based)
       const apiPage = currentPage + 1;
 
-      const response = await fetch(
-        `/api/users?page=${apiPage}&limit=${limit}&sortBy=total_points_earned&sortOrder=desc`
-      );
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          page: apiPage,
+          limit,
+          sortBy: "total_points_earned",
+          sortOrder: "desc",
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(
@@ -136,11 +145,11 @@ export default function UsersPage() {
         <Typography
           variant="h4"
           component="h1"
-          className="font-bold text-white mb-2"
+          className="font-bold text-gray-800 mb-2"
         >
           WMON Users Dashboard
         </Typography>
-        <Typography variant="subtitle1" className="text-white mb-4">
+        <Typography variant="subtitle1" className="text-gray-600 mb-4">
           Total users: {totalUsers.toLocaleString()}
         </Typography>
       </div>
