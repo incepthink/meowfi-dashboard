@@ -38,10 +38,10 @@ const GET_USER_BY_ADDRESS_QUERY = gql`
 // GET /api/users/[address] - Get specific user data
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
   try {
-    const address = params.address;
+    const {address} = await params;
     const { searchParams } = new URL(request.url);
     
     // Get current week number or from query params
