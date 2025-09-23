@@ -2,7 +2,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { graphqlClient } from '@/lib/graphql-client';
 import { gql } from 'graphql-request';
-import { User, UserWeeklyPoints, ApiError } from '@/types/user';
+export interface ApiError {
+  error: string;
+  message: string;
+}
 
 // Query for specific user with weekly points
 const GET_USER_BY_ADDRESS_QUERY = gql`
